@@ -1,53 +1,64 @@
-# Entity-Relationship Diagram (Text Format)
 
-## User
-- user_id (PK)
-- first_name
-- last_name
-- email (UNIQUE)
-- password_hash
-- phone_number
-- role (guest, host, admin)
-- created_at
+'''USERS
+CREATE TABLE User (
+  user_id UUID PRIMARY KEY,
+  first_name VARCHAR NOT NULL,
+  last_name VARCHAR NOT NULL,
+  email VARCHAR UNIQUE NOT NULL,
+  password_hash VARCHAR NOT NULL,
+  phone_number VARCHAR,
+  role ENUM('guest', 'host', 'admin') NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-## Property
-- property_id (PK)
-- host_id (FK → User.user_id)
-- name
-- description
-- location
-- pricepernight
-- created_at
-- updated_at
+PROPERTY
+CREATE TABLE Property (
+  property_id UUID PRIMARY KEY,
+  host_id UUID NOT NULL REFERENCES User(user_id),
+  name VARCHAR NOT NULL,
+  description TEXT NOT NULL,
+  location VARCHAR NOT NULL,
+  price_per_night DECIMAL NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-## Booking
-- booking_id (PK)
-- property_id (FK → Property.property_id)
-- user_id (FK → User.user_id)
-- start_date
-- end_date
-- total_price
-- status (pending, confirmed, canceled)
-- created_at
+BOOKING
+CREATE TABLE Booking (
+  booking_id UUID PRIMARY KEY,
+  property_id UUID NOT NULL REFERENCES Property(property_id),
+  user_id UUID NOT NULL REFERENCES User(user_id),
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  total_price DECIMAL NOT NULL,
+  status ENUM('pending', 'confirmed', 'canceled') NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-## Payment
-- payment_id (PK)
-- booking_id (FK → Booking.booking_id)
-- amount
-- payment_date
-- payment_method (credit_card, paypal, stripe)
+PAYMENT
+CREATE TABLE Payment (
+  payment_id UUID PRIMARY KEY,
+  booking_id UUID NOT NULL REFERENCES Booking(booking_id),
+  amount DECIMAL NOT NULL,
+  payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  payment_method ENUM('credit_card', 'paypal', 'stripe') NOT NULL
+);
 
-## Review
-- review_id (PK)
-- property_id (FK → Property.property_id)
-- user_id (FK → User.user_id)
-- rating (1–5)
-- comment
-- created_at
+-- REVIEW
+CREATE TABLE Review (
+  review_id UUID PRIMARY KEY,
+  property_id UUID NOT NULL REFERENCES Property(property_id),
+  user_id UUID NOT NULL REFERENCES User(user_id),
+  rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  comment TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-## Message
-- message_id (PK)
-- sender_id (FK → User.user_id)
-- recipient_id (FK → User.user_id)
-- message_body
-- sent_at
+-- MESSAGE
+CREATE TABLE Message (
+  message_id UUID PRIMARY KEY,
+  sender_id UUID NOT NULL REFERENCES User(user_id),
+  recipient_id UUID NOT NULL REFERENCES User(user_id),
+  message_body TEXT NOT NULL,
+  sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+); '''
